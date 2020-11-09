@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import os
@@ -10,10 +10,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import sklearn.feature_selection
 import sys
-np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize) #array의 데이터(380, )를 truncation없이 저장하기 위해
 
 
-# In[4]:
+# In[ ]:
 
 
 x_name = os.path.join(os.path.dirname(os.getcwd()), 'raw', f"{'cst_feat_jan'}.csv")
@@ -29,21 +29,46 @@ df_yv = pd.concat([df_y, df_v])
 df = pd.merge(df_x, df_yv, on='cst_id_di')
 
 
-# In[5]:
+# In[ ]:
+
+
+nc_name = os.path.join(os.path.dirname(os.getcwd()), 'raw', f"{'[Track1_데이터4] variable_dtype'}.xlsx")
+nc = pd.read_excel(nc_name, index_col=0)
+
+
+# In[ ]:
+
+
+#Outlier처리: numerical데이터 중 전체 분포의 99%보다 크거나 1%보다 작은 값을 가질 경우 50% 값으로 변경
+
+for i in df.columns[0:-1]:
+    if nc.loc[i, 'dType'] == 'numerical':
+        d_90 = df[i].quantile(0.99)
+        d_10 = df[i].quantile(0.01)
+        d_50 = df[i].quantile(0.50)
+        df[i] = np.where(df[i] > d_90, d_90, df[i])
+        df[i] = np.where(df[i] < d_10, d_10, df[i])
+
+
+# In[ ]:
 
 
 X = df.drop(columns = ['MRC_ID_DI'], axis=1)
 y = df['MRC_ID_DI']
 
 
-# In[6]:
+# In[ ]:
 
+
+#stratify를 이용해 test데이터 MRC_ID_DI분포를 전체 데이터 MRC_ID_DI분포와 일치하게 함.
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=1, stratify = y)
 
 
-# In[7]:
+# In[ ]:
 
+
+#train데이터의 각 MRC_ID_DI의 수를 동일하게 함. 
 
 train = X_train
 train['cst_id_di'] = y_train.index
@@ -73,10 +98,12 @@ X_train = train_f.drop(columns = ['MRC_ID_DI'], axis=1)
 y_train = train_f['MRC_ID_DI']
 
 
-# In[8]:
+# In[ ]:
 
 
-select = sklearn.feature_selection.SelectKBest(k=113)
+#column 수 변화: 226 -> 90 -> 4005 -> 380
+
+select = sklearn.feature_selection.SelectKBest(k=90)
 selected_features = select.fit(X_train, y_train)
 indices_selected = selected_features.get_support(indices=True)
 colnames_selected = [X_train.columns[i] for i in indices_selected]
@@ -84,7 +111,7 @@ colnames_selected = [X_train.columns[i] for i in indices_selected]
 X_train = X_train[colnames_selected]
 
 
-# In[9]:
+# In[ ]:
 
 
 from itertools import combinations
@@ -104,7 +131,7 @@ noint_indicies = [i for i, x in enumerate(list((X_train == 0).all())) if x]
 X_train = X_train.drop(X_train.columns[noint_indicies], axis = 1)
 
 
-# In[10]:
+# In[ ]:
 
 
 train = X_train
@@ -116,7 +143,7 @@ X_train = train.drop(columns = ['MRC_ID_DI'], axis=1)
 y_train = train['MRC_ID_DI']
 
 
-# In[11]:
+# In[ ]:
 
 
 select = sklearn.feature_selection.SelectKBest(k=380)
@@ -124,10 +151,10 @@ selected_features = select.fit(X_train, y_train)
 indices_selected = selected_features.get_support(indices=True)
 colnames_selected = [X_train.columns[i] for i in indices_selected]
 
-X_train = X_train[colnames_selected]
+X_train = X_train[colnames_selected] #colnames_selected를 이용해 val데이터와 test데이터를 train데이터와 동일하게 생성.
 
 
-# In[12]:
+# In[ ]:
 
 
 X_test = X_test.astype(np.float16)
@@ -144,7 +171,7 @@ noint_indicies = [i for i, x in enumerate(list((X_test == 0).all())) if x]
 X_test = X_test.drop(X_test.columns[noint_indicies], axis = 1)
 
 
-# In[13]:
+# In[ ]:
 
 
 test = X_test
@@ -158,20 +185,13 @@ y_test = test['MRC_ID_DI']
 X_test = X_test[colnames_selected]
 
 
-# In[14]:
+# In[ ]:
 
 
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=1, stratify = y_train)
 
 
-# In[15]:
-
-
-#X_train[X_train.columns] = (X_train[X_train.columns]+1)/2
-#X_val[X_val.columns] = (X_val[X_val.columns]+1)/2
-
-
-# In[16]:
+# In[ ]:
 
 
 df_train = pd.DataFrame(columns = ['cst_id_di', 'MRC_ID_DI', 'image'])
@@ -179,7 +199,7 @@ df_val = pd.DataFrame(columns = ['cst_id_di', 'MRC_ID_DI', 'image'])
 df_test = pd.DataFrame(columns = ['cst_id_di', 'MRC_ID_DI', 'image'])
 
 
-# In[17]:
+# In[ ]:
 
 
 for ind, k in enumerate(y_train.index):
@@ -189,7 +209,7 @@ for ind, k in enumerate(y_train.index):
     df_train = df_train.append(new_row, ignore_index=True)
 
 
-# In[18]:
+# In[ ]:
 
 
 df_train.to_csv('train_preprocess.csv')
@@ -197,7 +217,7 @@ df_train.to_csv('train_preprocess.csv')
 del df_train
 
 
-# In[19]:
+# In[ ]:
 
 
 for ind, k in enumerate(y_val.index):
@@ -207,7 +227,7 @@ for ind, k in enumerate(y_val.index):
     df_val = df_val.append(new_row, ignore_index=True)
 
 
-# In[20]:
+# In[ ]:
 
 
 df_val.to_csv('val_preprocess.csv')
@@ -215,7 +235,7 @@ df_val.to_csv('val_preprocess.csv')
 del df_val
 
 
-# In[21]:
+# In[ ]:
 
 
 for ind, k in enumerate(y_test.index):
@@ -225,7 +245,7 @@ for ind, k in enumerate(y_test.index):
     df_test = df_test.append(new_row, ignore_index=True)
 
 
-# In[22]:
+# In[ ]:
 
 
 df_test.to_csv('test_preprocess.csv')
@@ -235,6 +255,8 @@ del df_test
 
 # In[ ]:
 
+
+#OOM Error방지를 위해 10개의 파일로 분할하여 생성.
 
 td = [pd.DataFrame() for i in range(10)]
 td[0], td[1], td[2], td[3], td[4], td[5], td[6], td[7], td[8], td[9] = np.array_split(df, 10)
@@ -277,4 +299,12 @@ for i, t in enumerate(td):
     
     df_all.to_csv('all_preprocess_' + str(i) + '.csv')
     del df_all
+
+
+# In[ ]:
+
+
+#quiz_preprocess데이터를 final_model.h5를 train한 데이터와 동일하게 생성하기 위해 train데이터의 칼럼을 저장
+
+np.savetxt("colnames_selected.csv", colnames_selected, delimiter =", ", fmt ='% s') 
 
