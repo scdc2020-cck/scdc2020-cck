@@ -8,10 +8,7 @@ import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
 import random
-import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
 
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -26,8 +23,8 @@ tf.random.set_seed(seed_value)
 # In[ ]:
 
 
-p = 331
-model = tf.keras.models.load_model('model.h5')
+p = 380
+model = tf.keras.models.load_model('model/final_model.h5')
 
 
 # In[ ]:
@@ -48,28 +45,19 @@ df_quiz = pd.read_csv(df_quiz_name)
 
 
 def returnX(X):
+    
+    """
+    train데이터와 동일하게 DatraFrame의 row(p, )를 이미지(1, p, p, 3)로 변경
+    """
+    
     an_array = X.values
     t_array = np.transpose([an_array])
-    final_array = (np.dot(np.resize(an_array + 1, (p, 1)), np.resize(t_array + 1,(1,p))) + 1 ) / 2
+    final_array = (np.dot(np.resize(an_array, (p, 1)), np.resize(t_array,(1, p)), axis=1) +1) / 2
+    final_array = final_array.astype(np.float16)
     final_array = np.repeat(final_array.flatten(), 3)
     data = final_array.reshape((p,p, 3))
     data = np.expand_dims(data, axis=0)
     return data
-
-
-# In[ ]:
-
-
-"""
-def returnX(X):
-    an_array = X.values
-    row_array = np.tile(an_array, (p, 1))
-    col_array = np.transpose([an_array] * p)
-    final_array = (row_array + col_array) / 2
-    final_array = np.repeat(final_array.flatten(), 3)
-    data = final_array.reshape((p,p, 3))
-    return data
-"""
 
 
 # In[ ]:
