@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PolynomialFeatures
 from itertools import combinations
 import sys
-np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize) #array의 데이터(380, )를 truncation없이 저장하기 위해
 
 
 # In[ ]:
@@ -33,6 +33,30 @@ df = pd.merge(df_x, df_yv, on='cst_id_di')
 
 # In[ ]:
 
+
+nc_name = os.path.join(os.path.dirname(os.getcwd()), 'raw', f"{'[Track1_데이터4] variable_dtype'}.xlsx")
+nc = pd.read_excel(nc_name, index_col=0)
+
+
+# In[ ]:
+
+
+#Outlier처리: numerical데이터 중 전체 분포의 99%보다 크거나 1%보다 작은 값을 가질 경우 50% 값으로 변경
+
+for i in df.columns[0:-1]:
+    if nc.loc[i, 'dType'] == 'numerical':
+        d_90 = df[i].quantile(0.99)
+        d_10 = df[i].quantile(0.01)
+        d_50 = df[i].quantile(0.50)
+        df[i] = np.where(df[i] > d_90, d_90, df[i])
+        df[i] = np.where(df[i] < d_10, d_10, df[i])
+
+
+# In[ ]:
+
+
+# 1월 고객 예측 결과를 이용해 각 MRC_ID_DI의 예측 probability 상위 데이터를 선별하여 train데이터로 사용.
+#  각 MRC_ID_DI의 train, val데이터 수는 모두 동일하게, test데이터는 전체 데이터의 분포와 일치하게 설정.
 
 pred_name = os.path.join(os.path.dirname(os.getcwd()), 'predict', f"{'jan_pred'}.csv")
 df_pred = pd.read_csv(pred_name)
@@ -93,17 +117,17 @@ y_val = val_f['MRC_ID_DI']
 # In[ ]:
 
 
-test_0 = df_pred[df_pred['MRC_ID_DI'] == 0].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 0])*0.01]
-test_1 = df_pred[df_pred['MRC_ID_DI'] == 1].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 1])*0.01]
-test_2 = df_pred[df_pred['MRC_ID_DI'] == 2].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 2])*0.01]
-test_3 = df_pred[df_pred['MRC_ID_DI'] == 3].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 3])*0.01]
-test_4 = df_pred[df_pred['MRC_ID_DI'] == 4].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 4])*0.01]
-test_5 = df_pred[df_pred['MRC_ID_DI'] == 5].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 5])*0.01]
-test_6 = df_pred[df_pred['MRC_ID_DI'] == 6].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 6])*0.01]
-test_7 = df_pred[df_pred['MRC_ID_DI'] == 7].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 7])*0.01]
-test_8 = df_pred[df_pred['MRC_ID_DI'] == 8].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 8])*0.01]
-test_9 = df_pred[df_pred['MRC_ID_DI'] == 9].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 9])*0.01]
-test_10 = df_pred[df_pred['MRC_ID_DI'] == 10].sort_values(by="pred", ascending=False)[526:526+len(df_pred[df_pred['MRC_ID_DI'] == 10])*0.01]
+test_0 = df_pred[df_pred['MRC_ID_DI'] == 0].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 0])*0.01]
+test_1 = df_pred[df_pred['MRC_ID_DI'] == 1].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 1])*0.01]
+test_2 = df_pred[df_pred['MRC_ID_DI'] == 2].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 2])*0.01]
+test_3 = df_pred[df_pred['MRC_ID_DI'] == 3].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 3])*0.01]
+test_4 = df_pred[df_pred['MRC_ID_DI'] == 4].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 4])*0.01]
+test_5 = df_pred[df_pred['MRC_ID_DI'] == 5].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 5])*0.01]
+test_6 = df_pred[df_pred['MRC_ID_DI'] == 6].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 6])*0.01]
+test_7 = df_pred[df_pred['MRC_ID_DI'] == 7].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 7])*0.01]
+test_8 = df_pred[df_pred['MRC_ID_DI'] == 8].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 8])*0.01]
+test_9 = df_pred[df_pred['MRC_ID_DI'] == 9].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 9])*0.01]
+test_10 = df_pred[df_pred['MRC_ID_DI'] == 10].sort_values(by="pred", ascending=False)[:-len(df_pred[df_pred['MRC_ID_DI'] == 10])*0.01]
 
 
 # In[ ]:
@@ -119,7 +143,9 @@ y_test = test_f['MRC_ID_DI']
 # In[ ]:
 
 
-select = sklearn.feature_selection.SelectKBest(k=113)
+#column 수 변화: 226 -> 90 -> 4005 -> 380
+
+select = sklearn.feature_selection.SelectKBest(k=90)
 selected_features = select.fit(X_train, y_train)
 indices_selected = selected_features.get_support(indices=True)
 colnames_selected = [X_train.columns[i] for i in indices_selected]
@@ -164,7 +190,7 @@ selected_features = select.fit(X_train, y_train)
 indices_selected = selected_features.get_support(indices=True)
 colnames_selected = [X_train.columns[i] for i in indices_selected]
 
-X_train = X_train[colnames_selected]
+X_train = X_train[colnames_selected] #colnames_selected를 이용해 val데이터와 test데이터를 train데이터와 동일하게 생성.
 
 
 # In[ ]:
@@ -291,6 +317,8 @@ del df_test
 # In[ ]:
 
 
+#OOM Error방지를 위해 10개의 파일로 분할하여 생성.
+
 td = [pd.DataFrame() for i in range(10)]
 td[0], td[1], td[2], td[3], td[4], td[5], td[6], td[7], td[8], td[9] = np.array_split(df, 10)
 
@@ -338,6 +366,8 @@ for i, t in enumerate(td):
 
 # In[ ]:
 
+
+#quiz_preprocess데이터를 final_model.h5를 train한 데이터와 동일하게 생성하기 위해 train데이터의 칼럼을 저장
 
 np.savetxt("colnames_selected.csv", colnames_selected, delimiter =", ", fmt ='% s') 
 
