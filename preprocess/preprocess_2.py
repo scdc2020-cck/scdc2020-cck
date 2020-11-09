@@ -23,6 +23,38 @@ df = pd.read_csv(x_name, index_col=0)
 # In[ ]:
 
 
+nc_name = os.path.join(os.path.dirname(os.getcwd()), 'raw', f"{'[Track1_데이터4] variable_dtype'}.xlsx")
+nc = pd.read_excel(nc_name, index_col=0)
+
+
+# In[ ]:
+
+
+#Outlier처리: numerical데이터 중 전체 분포의 99%보다 크거나 1%보다 작은 값을 가질 경우 50% 값으로 변경
+
+for i in df.columns[0:-1]:
+    if nc.loc[i, 'dType'] == 'numerical':
+        d_90 = df[i].quantile(0.99)
+        d_10 = df[i].quantile(0.01)
+        d_50 = df[i].quantile(0.50)
+        df[i] = np.where(df[i] > d_90, d_90, df[i])
+        df[i] = np.where(df[i] < d_10, d_10, df[i])
+
+
+# In[ ]:
+
+
+#colnames_selected.csv에 저장된 칼럼명을 활용하여 모델을 train_preprocess와 동일하게 quiz_preprocess생성.
+
+df_col = pd.read_csv('colnames_selected.csv', delimiter=',')
+colnames_selected = df_col.values
+
+
+# In[ ]:
+
+
+#OOM Error방지를 위해 10개의 파일로 분할하여 생성.
+
 td = [pd.DataFrame() for i in range(10)]
 td[0], td[1], td[2], td[3], td[4], td[5], td[6], td[7], td[8], td[9] = np.array_split(df, 10)
 
@@ -61,7 +93,7 @@ for i, t in enumerate(td):
         new_row = {'cst_id_di':k, 'image':an_array}
         df_all = df_all.append(new_row, ignore_index=True)
     
-    df_all.to_csv('preprocess/quiz_preprocess_' + str(i) + '.csv')
+    df_all.to_csv('quiz_preprocess_' + str(i) + '.csv')
     del df_all
 
 
