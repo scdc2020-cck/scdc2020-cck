@@ -25,7 +25,7 @@ tf.random.set_seed(seed_value)
 
 p = 380
 batch_size = 128
-model_name = os.path.join(os.path.dirname(os.getcwd()), 'model', 'final_model_1.h5')
+model_name = os.path.join(os.path.dirname(os.getcwd()), 'model', 'final_model.h5')
 model = tf.keras.models.load_model(model_name)
 
 
